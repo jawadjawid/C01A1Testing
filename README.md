@@ -13,8 +13,9 @@ https://robotframework.org/robotframework/latest/RobotFrameworkUserGuide.html#in
 
 How to run script:
 1- Checkout the repo
-2- Navigate to the home folder (where test.robot is located) using a cmd or shll
-3- Type "python -m robot test.robot" in the CMD
-4- Done
+2- Navigate to the home folder (where test.robot is located) using a cmd or shell
+3- Remember to rezet your db, becasue the tests assume an empty db (run "Match (n) DETACH DELETE n") in neo4j
+4- Type "python -m robot test.robot" in the CMD
+5- Done
 
 If you're able to come up with test cases that are not already in test.robot please contribute, that will help us all have strong, bug free code.
