@@ -12,7 +12,7 @@ TestAddActor200
     ${resp}=    Put Request    localhost    /api/v1/addActor    data=${params}    headers=${headers}
     Should Be Equal As Strings    ${resp.status_code}    200
 
-TestAddActor400
+TestAddSameActorAgain400
     Create Session    localhost    http://localhost:8080
     ${headers}=    Create Dictionary    Content-Type=application/json
     ${params}=    Create Dictionary    name=John Doe    actorId=nm1
