@@ -8,6 +8,7 @@ ${TestAddActorBadFormat400}   {"name": "James Doe" "actorId": "nm2"}
 ${TestAddMovieBadFormat400}   {name=The Martin  movieId=tt2}
 ${TestAddRelationshipBadFormat400}    actorId=nm2   movieId=tt2
 ${TestGetActorBadFormat400}   {actorId "nm1"}
+${TestGetMovieBadFormat400}   {"movieId":}
 
 *** Test Cases ***
 # /api/v1/addActor Tests Begin
@@ -226,7 +227,7 @@ TestGetActor200
     ${actualJSON}=  To Json  ${resp.content}  pretty_print=True
     &{actual}=  Evaluate  json.loads('''${actualJSON}''')  json
     &{expected}=  Evaluate  json.loads('''${expectedJSON}''')  json
-    Dictionaries Should Be Equal    ${expected}          ${actual}
+    Dictionaries Should Be Equal    ${expected}    ${actual}
 
 TestGetSameActorAgain200
     Create Session    localhost    http://localhost:8080
@@ -236,11 +237,11 @@ TestGetSameActorAgain200
 
     Should Be Equal As Strings    ${resp.status_code}    200
 
-    ${expectedJSON}=  To Json  {"actorId":"nm1","name":"John Doe","movies":["tt2","tt1"]}  pretty_print=True
+    ${expectedJSON}=  To Json  {"movies":["tt2","tt1"], "actorId":"nm1","name":"John Doe"}  pretty_print=True
     ${actualJSON}=  To Json  ${resp.content}  pretty_print=True
     &{actual}=  Evaluate  json.loads('''${actualJSON}''')  json
     &{expected}=  Evaluate  json.loads('''${expectedJSON}''')  json
-    Dictionaries Should Be Equal    ${expected}          ${actual}
+    Dictionaries Should Be Equal    ${expected}    ${actual}
 
 TestGetNonExistingActor404
     Create Session    localhost    http://localhost:8080
@@ -252,7 +253,7 @@ TestGetNonExistingActor404
 TestGetActorWithExtraParameters200
     Create Session    localhost    http://localhost:8080
 	${headers}=    Create Dictionary    Accept=application/json    Content-Type=application/json    charset=utf-8
-    ${inputJSON}=  To Json  {"actorId":"nm1"}  pretty_print=True
+    ${inputJSON}=  To Json  {"actorId":"nm1", "mamaBurgerId":"nm1"}  pretty_print=True
     ${resp}=    Get Request    localhost    /api/v1/getActor    data=${inputJSON}   headers=${headers}
 
     Should Be Equal As Strings    ${resp.status_code}    200
@@ -261,7 +262,7 @@ TestGetActorWithExtraParameters200
     ${actualJSON}=  To Json  ${resp.content}  pretty_print=True
     &{actual}=  Evaluate  json.loads('''${actualJSON}''')  json
     &{expected}=  Evaluate  json.loads('''${expectedJSON}''')  json
-    Dictionaries Should Be Equal    ${expected}          ${actual}
+    Dictionaries Should Be Equal    ${expected}    ${actual}
 
 TestGetActorWithMissingActorId400
     Create Session    localhost    http://localhost:8080
@@ -295,11 +296,132 @@ TestGetAnotherActor200
     ${actualJSON}=  To Json  ${resp.content}  pretty_print=True
     &{actual}=  Evaluate  json.loads('''${actualJSON}''')  json
     &{expected}=  Evaluate  json.loads('''${expectedJSON}''')  json
-    Dictionaries Should Be Equal    ${expected}          ${actual}
+    Dictionaries Should Be Equal    ${expected}    ${actual}
 
-# /api/v1/getActor Tests Begin
+AddActorForGetActor200
+    Create Session    localhost    http://localhost:8080
+    ${headers}=    Create Dictionary    Content-Type=application/json
+    ${params}=    Create Dictionary    name=Jacob Doe    actorId=nm3
+    ${resp}=    Put Request    localhost    /api/v1/addActor    data=${params}    headers=${headers}
+    Should Be Equal As Strings    ${resp.status_code}    200
 
+TestGetActorWithNoMovies200
+    Create Session    localhost    http://localhost:8080
+	${headers}=    Create Dictionary    Accept=application/json    Content-Type=application/json    charset=utf-8
+    ${inputJSON}=  To Json  {"actorId":"nm3"}  pretty_print=True
+    ${resp}=    Get Request    localhost    /api/v1/getActor    data=${inputJSON}   headers=${headers}
 
+    Should Be Equal As Strings    ${resp.status_code}    200
 
+    ${expectedJSON}=  To Json  {"name":"Jacob Doe", "actorId":"nm3","movies":[]}  pretty_print=True
+    ${actualJSON}=  To Json  ${resp.content}  pretty_print=True
+    &{actual}=  Evaluate  json.loads('''${actualJSON}''')  json
+    &{expected}=  Evaluate  json.loads('''${expectedJSON}''')  json
+    Dictionaries Should Be Equal    ${expected}    ${actual}
 
+# /api/v1/getMovie Tests Begin
+
+TestGetMovie200
+    Create Session    localhost    http://localhost:8080
+	${headers}=    Create Dictionary    Accept=application/json    Content-Type=application/json    charset=utf-8
+    ${inputJSON}=  To Json  {"movieId":"tt1"}  pretty_print=True
+    ${resp}=    Get Request    localhost    /api/v1/getMovie    data=${inputJSON}   headers=${headers}
+
+    Should Be Equal As Strings    ${resp.status_code}    200
+
+    ${expectedJSON}=  To Json  {"movieId":"tt1","name":"The Matrix","actors":["nm2","nm1"]}  pretty_print=True
+    ${actualJSON}=  To Json  ${resp.content}  pretty_print=True
+    &{actual}=  Evaluate  json.loads('''${actualJSON}''')  json
+    &{expected}=  Evaluate  json.loads('''${expectedJSON}''')  json
+    Dictionaries Should Be Equal    ${expected}   ${actual}
+
+TestGetMovieAgain200
+    Create Session    localhost    http://localhost:8080
+	${headers}=    Create Dictionary    Accept=application/json    Content-Type=application/json    charset=utf-8
+    ${inputJSON}=  To Json  {"movieId":"tt1"}  pretty_print=True
+    ${resp}=    Get Request    localhost    /api/v1/getMovie    data=${inputJSON}   headers=${headers}
+
+    Should Be Equal As Strings    ${resp.status_code}    200
+
+    ${expectedJSON}=  To Json  {"name":"The Matrix", "movieId":"tt1","actors":["nm2","nm1"]}  pretty_print=True
+    ${actualJSON}=  To Json  ${resp.content}  pretty_print=True
+    &{actual}=  Evaluate  json.loads('''${actualJSON}''')  json
+    &{expected}=  Evaluate  json.loads('''${expectedJSON}''')  json
+    Dictionaries Should Be Equal    ${expected}   ${actual}
+
+TestGetNonExistingMovie404
+    Create Session    localhost    http://localhost:8080
+	${headers}=    Create Dictionary    Accept=application/json    Content-Type=application/json    charset=utf-8
+    ${inputJSON}=  To Json  {"movieId":"tt3"}  pretty_print=True
+    ${resp}=    Get Request    localhost    /api/v1/getMovie    data=${inputJSON}   headers=${headers}
+    Should Be Equal As Strings    ${resp.status_code}    404
+
+TestGetMovieWithExtraParameters200
+    Create Session    localhost    http://localhost:8080
+	${headers}=    Create Dictionary    Accept=application/json    Content-Type=application/json    charset=utf-8
+    ${inputJSON}=  To Json  {"movieId":"tt1", "mamaBurgerId":"nm1"}  pretty_print=True
+    ${resp}=    Get Request    localhost    /api/v1/getMovie    data=${inputJSON}   headers=${headers}
+
+    Should Be Equal As Strings    ${resp.status_code}    200
+
+    ${expectedJSON}=  To Json  {"movieId":"tt1","name":"The Matrix","actors":["nm2","nm1"]}  pretty_print=True
+    ${actualJSON}=  To Json  ${resp.content}  pretty_print=True
+    &{actual}=  Evaluate  json.loads('''${actualJSON}''')  json
+    &{expected}=  Evaluate  json.loads('''${expectedJSON}''')  json
+    Dictionaries Should Be Equal    ${expected}    ${actual}
+
+TestGetActorWithMissingMovieId400
+    Create Session    localhost    http://localhost:8080
+	${headers}=    Create Dictionary    Accept=application/json    Content-Type=application/json    charset=utf-8
+    ${inputJSON}=  To Json  {"mamaBurgerId":"nm1"}  pretty_print=True
+    ${resp}=    Get Request    localhost    /api/v1/getMovie    data=${inputJSON}   headers=${headers}
+    Should Be Equal As Strings    ${resp.status_code}    400
+
+TestGetMovieWithPutRequest400
+    Create Session    localhost    http://localhost:8080
+	${headers}=    Create Dictionary    Accept=application/json    Content-Type=application/json    charset=utf-8
+    ${inputJSON}=  To Json  {"movieId":"tt1"}  pretty_print=True
+    ${resp}=    Put Request    localhost    /api/v1/getMovie    data=${inputJSON}   headers=${headers}
+    Should Be Equal As Strings    ${resp.status_code}    400
+
+TestGetMovieWithBadFormat400
+    Create Session    localhost    http://localhost:8080
+	${headers}=    Create Dictionary    Accept=application/json    Content-Type=application/json    charset=utf-8
+    ${resp}=    Get Request    localhost    /api/v1/getMovie    data=${TestGetMovieBadFormat400}   headers=${headers}
+    Should Be Equal As Strings    ${resp.status_code}    400
+
+TestGetAnotherMovie200
+    Create Session    localhost    http://localhost:8080
+	${headers}=    Create Dictionary    Accept=application/json    Content-Type=application/json    charset=utf-8
+    ${inputJSON}=  To Json  {"movieId":"tt2"}  pretty_print=True
+    ${resp}=    Get Request    localhost    /api/v1/getMovie    data=${inputJSON}   headers=${headers}
+
+    Should Be Equal As Strings    ${resp.status_code}    200
+
+    ${expectedJSON}=  To Json  {"movieId":"tt2","name":"The Martin","actors":["nm2","nm1"]}  pretty_print=True
+    ${actualJSON}=  To Json  ${resp.content}  pretty_print=True
+    &{actual}=  Evaluate  json.loads('''${actualJSON}''')  json
+    &{expected}=  Evaluate  json.loads('''${expectedJSON}''')  json
+    Dictionaries Should Be Equal    ${expected}    ${actual}
+
+AddMovieForGetMovie200
+    Create Session    localhost    http://localhost:8080
+    ${headers}=    Create Dictionary    Content-Type=application/json
+    ${params}=    Create Dictionary    name=The Maze    movieId=tt3
+    ${resp}=    Put Request    localhost    /api/v1/addMovie    data=${params}    headers=${headers}
+    Should Be Equal As Strings    ${resp.status_code}    200
+
+TestGetMovieWithNoActors200
+    Create Session    localhost    http://localhost:8080
+	${headers}=    Create Dictionary    Accept=application/json    Content-Type=application/json    charset=utf-8
+    ${inputJSON}=  To Json  {"movieId":"tt3"}  pretty_print=True
+    ${resp}=    Get Request    localhost    /api/v1/getMovie    data=${inputJSON}   headers=${headers}
+
+    Should Be Equal As Strings    ${resp.status_code}    200
+
+    ${expectedJSON}=  To Json  {"movieId":"tt3","name":"The Maze","actors":[]}  pretty_print=True
+    ${actualJSON}=  To Json  ${resp.content}  pretty_print=True
+    &{actual}=  Evaluate  json.loads('''${actualJSON}''')  json
+    &{expected}=  Evaluate  json.loads('''${expectedJSON}''')  json
+    Dictionaries Should Be Equal    ${expected}    ${actual}
 
