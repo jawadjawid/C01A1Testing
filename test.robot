@@ -1,12 +1,11 @@
 *** Settings ***
 Library           Collections
 Library           RequestsLibrary
-Test Timeout      90000 seconds
-
+Test Timeout      30 seconds
 
 *** Test Cases ***
-# /api/v1/addActor Tests Begin
 
+# /api/v1/addActor Tests Begin
 TestAddActor200
     Create Session    localhost    http://localhost:8080
     ${headers}=    Create Dictionary    Content-Type=application/json
@@ -193,10 +192,17 @@ TestAddNewRelationship200
 
 # /api/v1/getActor Tests Begin
 TestGetActor200
-# idk why this return 400. There's an issue happening where te parmas are being sent as "actorId=nm1 movieId=tt2"
-# instead of "{actorId=nm1, movieId=tt2}. That only happens if the request is of type GET
     Create Session    localhost    http://localhost:8080
-    ${headers}=    Create Dictionary    Content-Type=application/json
-    ${params}=    Create Dictionary    actorId=nm1 movieId=tt2
-    ${resp}=    Get Request    localhost    /api/v1/getActor    data=${params}    headers=${headers}
+	${headers}=    Create Dictionary    Accept=application/json    Content-Type=application/json    charset=utf-8
+    ${inputJSON}=  To Json  {"actorId":"nm1"}  pretty_print=True
+    ${resp}=    Get Request    localhost    /api/v1/getActor    data=${inputJSON}   headers=${headers}
+
     Should Be Equal As Strings    ${resp.status_code}    200
+
+    ${expectedJSON}=  To Json  {"actorId":"nm1","name":"John Doe","movies":["tt2","tt1"]}  pretty_print=True
+    ${actualJSON}=  To Json  ${resp.content}  pretty_print=True
+    &{actual}=  Evaluate  json.loads('''${actualJSON}''')  json
+    &{expected}=  Evaluate  json.loads('''${expectedJSON}''')  json
+    Dictionaries Should Be Equal    ${expected}          ${actual}
+
+
