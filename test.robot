@@ -441,7 +441,6 @@ TestHasRelationship200
     &{expected}=  Evaluate  json.loads('''${expectedJSON}''')  json
     Dictionaries Should Be Equal    ${expected}   ${actual}
 
-# /api/v1/hasRelationship Tests Begin
 TestHasNoRelationship200
     Create Session    localhost    http://localhost:8080
 	${headers}=    Create Dictionary    Accept=application/json    Content-Type=application/json    charset=utf-8
