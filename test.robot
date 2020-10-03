@@ -1,7 +1,7 @@
 *** Settings ***
 Library           Collections
 Library           RequestsLibrary
-Test Timeout      30 seconds
+Test Timeout      3000 seconds
 
 *** Variables ***
 ${TestAddActorBadFormat400}   {"name": "James Doe" "actorId": "nm2"}
@@ -503,4 +503,143 @@ TestHasNoRelationshipAgain200
     &{expected}=  Evaluate  json.loads('''${expectedJSON}''')  json
     Dictionaries Should Be Equal    ${expected}   ${actual}
 
-# /api/v1/computeBaconNumber Tests Begin
+# /api/v1/computeBaconPath and /api/v1/computeBaconNumber Tests Begin
+TestComputeBaconPathWithKevinBaconWithoutMovieButWithNonExistingActorId
+    Create Session    localhost    http://localhost:8080
+        ${headers}=    Create Dictionary    Content-Type=application/json
+        ${params}=    Create Dictionary    name=Kevin Bacon    actorId=nm0000102
+        ${resp}=    Put Request    localhost    /api/v1/addActor    data=${params}    headers=${headers}
+        Should Be Equal As Strings    ${resp.status_code}    200
+
+    Create Session    localhost    http://localhost:8080
+        ${headers}=    Create Dictionary    Content-Type=application/json
+        ${params}=    Create Dictionary    name=sdfsdf    actorId=hkjh
+        ${resp}=    Get Request    localhost    /api/v1/computeBaconNumber    data=${params}    headers=${headers}
+        Should Be Equal As Strings    ${resp.status_code}    400
+
+TestComputeBaconNumberWithKevinBaconWithoutMovieButWithNonExistingActorId
+    Create Session    localhost    http://localhost:8080
+        ${headers}=    Create Dictionary    Content-Type=application/json; charset=utf-8
+        ${params}=    Create Dictionary   actorId=hehehe
+        ${resp}=    Get Request    localhost    /api/v1/computeBaconNumber    data=${params}    headers=${headers}
+        Should Be Equal As Strings    ${resp.status_code}    400
+
+TestComputeBaconPathWithKevinBaconWithExistingActorIdNoPath
+    Create Session    localhost    http://localhost:8080
+        ${headers}=    Create Dictionary    Content-Type=application/json; charset=utf-8
+        ${params}=    To Json   {"actorId":"nm2"}     pretty_print=True
+        ${resp}=    Get Request    localhost    /api/v1/computeBaconPath    data=${params}    headers=${headers}
+        Should Be Equal As Strings    ${resp.status_code}    404
+
+TestComputeBaconNumberWithKevinBaconWithExistingActorIdNoPath
+    Create Session    localhost    http://localhost:8080
+        ${headers}=    Create Dictionary    Content-Type=application/json; charset=utf-8
+        ${params}=    To Json   {"actorId":"nm2"}     pretty_print=True
+        ${resp}=    Get Request    localhost    /api/v1/computeBaconNumber    data=${params}    headers=${headers}
+        Should Be Equal As Strings    ${resp.status_code}    404
+
+TestComputeBaconPathForKevinBaconHasNoMovie
+    Create Session    localhost    http://localhost:8080
+        ${headers}=    Create Dictionary    Content-Type=application/json; charset=utf-8
+        ${params}=    To Json   {"actorId":"nm0000102"}     pretty_print=True
+        ${resp}=    Get Request    localhost    /api/v1/computeBaconPath    data=${params}    headers=${headers}
+        Should Be Equal As Strings    ${resp.status_code}    400
+
+TestComputeBaconNumberForKevinBaconHasNoMovie
+    Create Session    localhost    http://localhost:8080
+        ${headers}=    Create Dictionary    Content-Type=application/json; charset=utf-8
+        ${params}=    To Json   {"actorId":"nm0000102"}     pretty_print=True
+        ${resp}=    Get Request    localhost    /api/v1/computeBaconNumber    data=${params}    headers=${headers}
+        Should Be Equal As Strings    ${resp.status_code}    200
+
+    ${expectedJSON}=  To Json  {"baconNumber":"0"}  pretty_print=True
+              ${actualJSON}=  To Json  ${resp.content}  pretty_print=True
+              &{actual}=  Evaluate  json.loads('''${actualJSON}''')  json
+              &{expected}=  Evaluate  json.loads('''${expectedJSON}''')  json
+              Dictionaries Should Be Equal    ${expected}   ${actual}
+
+TestComputeBaconPathWithKevinBaconWithExistingActorIdOnePath
+      Create Session    localhost    http://localhost:8080
+        ${headers}=    Create Dictionary    Content-Type=application/json
+        ${params}=    Create Dictionary    actorId=nm0000102   movieId=tt2
+        ${resp}=    Put Request    localhost    /api/v1/addRelationship    data=${params}    headers=${headers}
+        Should Be Equal As Strings    ${resp.status_code}    200
+
+     Create Session    localhost    http://localhost:8080
+         ${headers}=    Create Dictionary    Content-Type=application/json
+         ${params}=    Create Dictionary    name=Billy    actorId=bill321
+         ${resp}=    Put Request    localhost    /api/v1/addActor    data=${params}    headers=${headers}
+         Should Be Equal As Strings    ${resp.status_code}    200
+
+     Create Session    localhost    http://localhost:8080
+         ${headers}=    Create Dictionary    Content-Type=application/json
+         ${params}=    Create Dictionary    actorId=bill321   movieId=tt1
+         ${resp}=    Put Request    localhost    /api/v1/addRelationship    data=${params}    headers=${headers}
+         Should Be Equal As Strings    ${resp.status_code}    200
+
+    Create Session    localhost    http://localhost:8080
+          ${headers}=    Create Dictionary    Content-Type=application/json; charset=utf-8
+          ${params}=    To Json      {"actorId":"nm2"}   pretty_print=True
+          ${resp}=    Get Request    localhost    /api/v1/computeBaconPath    data=${params}    headers=${headers}
+          Should Be Equal As Strings    ${resp.status_code}    200
+
+          ${expectedJSON}=  To Json  {"baconPath":[{"actorId":"nm0000102","movieId":"tt2"},{"actorId":"nm2","movieId":"tt2"}],"baconNumber":"1"}  pretty_print=True
+          ${actualJSON}=  To Json  ${resp.content}  pretty_print=True
+          &{actual}=  Evaluate  json.loads('''${actualJSON}''')  json
+          &{expected}=  Evaluate  json.loads('''${expectedJSON}''')  json
+          Dictionaries Should Be Equal    ${expected}   ${actual}
+
+TestComputeBaconNumberWithKevinBaconWithExistingActorIdOnePath
+      Create Session    localhost    http://localhost:8080
+            ${headers}=    Create Dictionary    Content-Type=application/json; charset=utf-8
+            ${params}=   To Json    {"actorId":"nm2"}   pretty_print=True
+            ${resp}=    Get Request    localhost    /api/v1/computeBaconNumber    data=${params}    headers=${headers}
+            Should Be Equal As Strings    ${resp.status_code}    200
+
+            ${expectedJSON}=  To Json  {"baconNumber":"1"}  pretty_print=True
+            ${actualJSON}=  To Json  ${resp.content}  pretty_print=True
+            &{actual}=  Evaluate  json.loads('''${actualJSON}''')  json
+            &{expected}=  Evaluate  json.loads('''${expectedJSON}''')  json
+            Dictionaries Should Be Equal    ${expected}   ${actual}
+
+TestComputeBaconPathWithKevinBaconWithExistingActorIdMultiplePaths
+    Create Session    localhost    http://localhost:8080
+            ${headers}=    Create Dictionary    Content-Type=application/json; charset=utf-8
+            ${params}=    To Json   {"actorId":"bill321"}   pretty_print=True
+            ${resp}=    Get Request    localhost    /api/v1/computeBaconPath    data=${params}    headers=${headers}
+            Should Be Equal As Strings    ${resp.status_code}    200
+
+            ${expectedJSON}=  To Json  {"baconPath":[{"actorId":"nm0000102","movieId":"tt2"},{"actorId":"nm2","movieId":"tt2"},{"actorId":"nm2","movieId":"tt1"},{"actorId":"bill321","movieId":"tt1"}],"baconNumber":"2"}   pretty_print=True
+            ${actualJSON}=  To Json  ${resp.content}  pretty_print=True
+            &{actual}=  Evaluate  json.loads('''${actualJSON}''')  json
+            &{expected}=  Evaluate  json.loads('''${expectedJSON}''')  json
+            Dictionaries Should Be Equal    ${expected}   ${actual}
+
+TestComputeBaconNumberWithKevinBaconWithExistingActorIdMultiplePaths
+    Create Session    localhost    http://localhost:8080
+            ${headers}=    Create Dictionary    Content-Type=application/json; charset=utf-8
+            ${params}=    To Json    {"actorId":"bill321"}   pretty_print=True
+            ${resp}=    Get Request    localhost    /api/v1/computeBaconNumber    data=${params}    headers=${headers}
+            Should Be Equal As Strings    ${resp.status_code}    200
+
+            ${expectedJSON}=  To Json  {"baconNumber":"2"}  pretty_print=True
+            ${actualJSON}=  To Json  ${resp.content}  pretty_print=True
+            &{actual}=  Evaluate  json.loads('''${actualJSON}''')  json
+            &{expected}=  Evaluate  json.loads('''${expectedJSON}''')  json
+            Dictionaries Should Be Equal    ${expected}   ${actual}
+
+TestComputeBaconPathForKevinBaconHasMovie
+    Create Session    localhost    http://localhost:8080
+            ${headers}=    Create Dictionary    Content-Type=application/json; charset=utf-8
+            ${params}=    To Json    {"actorId":"nm0000102"}   pretty_print=True
+            ${resp}=    Get Request    localhost    /api/v1/computeBaconPath    data=${params}    headers=${headers}
+            Should Be Equal As Strings    ${resp.status_code}    200
+
+            ${expectedJSON}=  To Json  {"baconPath":[{"actorId":"nm0000102","movieId":"tt2"}],"baconNumber":"0"}  pretty_print=True
+            ${actualJSON}=  To Json  ${resp.content}  pretty_print=True
+            &{actual}=  Evaluate  json.loads('''${actualJSON}''')  json
+            &{expected}=  Evaluate  json.loads('''${expectedJSON}''')  json
+            Dictionaries Should Be Equal    ${expected}   ${actual}
+
+
+
