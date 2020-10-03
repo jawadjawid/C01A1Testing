@@ -470,14 +470,14 @@ TestHasRelationshipWithNonExistingMovieId404
     ${resp}=    Get Request    localhost    /api/v1/hasRelationship    data=${inputJSON}   headers=${headers}
     Should Be Equal As Strings    ${resp.status_code}    404
 
-TestHasRelationshipWithMissingMovieId404
+TestHasRelationshipWithMissingMovieId400
     Create Session    localhost    http://localhost:8080
 	${headers}=    Create Dictionary    Accept=application/json    Content-Type=application/json    charset=utf-8
 	${inputJSON}=  To Json  {"actorId": "nm3"}  pretty_print=True
     ${resp}=    Get Request    localhost    /api/v1/hasRelationship    data=${inputJSON}   headers=${headers}
     Should Be Equal As Strings    ${resp.status_code}    400
 
-TestHasRelationshipWithMissingActorId404
+TestHasRelationshipWithMissingActorId400
     Create Session    localhost    http://localhost:8080
 	${headers}=    Create Dictionary    Accept=application/json    Content-Type=application/json    charset=utf-8
 	${inputJSON}=  To Json  {"movieId": "tt1"}  pretty_print=True
