@@ -543,7 +543,7 @@ TestComputeBaconPathForKevinBaconHasNoMovie
         ${headers}=    Create Dictionary    Content-Type=application/json; charset=utf-8
         ${params}=    To Json   {"actorId":"nm0000102"}     pretty_print=True
         ${resp}=    Get Request    localhost    /api/v1/computeBaconPath    data=${params}    headers=${headers}
-        Should Be Equal As Strings    ${resp.status_code}    400
+        Should Be Equal As Strings    ${resp.status_code}    404
 
 TestComputeBaconNumberForKevinBaconHasNoMovie
     Create Session    localhost    http://localhost:8080
@@ -583,7 +583,7 @@ TestComputeBaconPathWithKevinBaconWithExistingActorIdOnePath
           ${resp}=    Get Request    localhost    /api/v1/computeBaconPath    data=${params}    headers=${headers}
           Should Be Equal As Strings    ${resp.status_code}    200
 
-          ${expectedJSON}=  To Json  {"baconPath":[{"actorId":"nm0000102","movieId":"tt2"},{"actorId":"nm2","movieId":"tt2"}],"baconNumber":"1"}  pretty_print=True
+          ${expectedJSON}=  To Json  {"baconPath":[{"actorId": "nm2", "movieId": "tt2"}, {"actorId": "nm0000102", "movieId": "tt2"}],"baconNumber":"1"}  pretty_print=True
           ${actualJSON}=  To Json  ${resp.content}  pretty_print=True
           &{actual}=  Evaluate  json.loads('''${actualJSON}''')  json
           &{expected}=  Evaluate  json.loads('''${expectedJSON}''')  json
@@ -609,7 +609,7 @@ TestComputeBaconPathWithKevinBaconWithExistingActorIdMultiplePaths
             ${resp}=    Get Request    localhost    /api/v1/computeBaconPath    data=${params}    headers=${headers}
             Should Be Equal As Strings    ${resp.status_code}    200
 
-            ${expectedJSON}=  To Json  {"baconPath":[{"actorId":"nm0000102","movieId":"tt2"},{"actorId":"nm2","movieId":"tt2"},{"actorId":"nm2","movieId":"tt1"},{"actorId":"bill321","movieId":"tt1"}],"baconNumber":"2"}   pretty_print=True
+            ${expectedJSON}=  To Json  {"baconPath":[{"actorId": "bill321", "movieId": "tt1"}, {"actorId": "nm2", "movieId": "tt1"}, {"actorId": "nm2", "movieId": "tt2"}, {"actorId": "nm0000102", "movieId": "tt2"}],"baconNumber":"2"}   pretty_print=True
             ${actualJSON}=  To Json  ${resp.content}  pretty_print=True
             &{actual}=  Evaluate  json.loads('''${actualJSON}''')  json
             &{expected}=  Evaluate  json.loads('''${expectedJSON}''')  json
