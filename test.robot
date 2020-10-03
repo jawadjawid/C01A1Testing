@@ -1,7 +1,7 @@
 *** Settings ***
 Library           Collections
 Library           RequestsLibrary
-Test Timeout      3000 seconds
+Test Timeout      30 seconds
 
 *** Variables ***
 ${TestAddActorBadFormat400}   {"name": "James Doe" "actorId": "nm2"}
@@ -486,7 +486,7 @@ TestHasRelationshipWithMissingActorId400
 TestHasRelationshipWithBadFormat400
     Create Session    localhost    http://localhost:8080
 	${headers}=    Create Dictionary    Accept=application/json    Content-Type=application/json    charset=utf-8
-    ${resp}=    Get Request    localhost    /api/v1/getMovie    data=${TestHasRelationshipBadFormat400}   headers=${headers}
+    ${resp}=    Get Request    localhost    /api/v1/hasRelationship    data=${TestHasRelationshipBadFormat400}   headers=${headers}
     Should Be Equal As Strings    ${resp.status_code}    400
 
 TestHasNoRelationshipAgain200
